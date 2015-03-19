@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import os, sys, re, datetime
-import requests, hashlib
+import requests
 import lxml.html
 
 VERBOSE = True
