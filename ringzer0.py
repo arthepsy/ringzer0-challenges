@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import os, sys, re, datetime
+import os, sys, re, datetime, tempfile
 import requests, hashlib
 import lxml.html
 
@@ -15,6 +15,9 @@ def _tsout(*objs):
 
 def _out(*objs):
 	print(*objs, file=sys.stdout)
+
+def error(*objs):
+	print(*objs, file=sys.stderr)
 
 def output(prefix, info = None):
 	if RZ_VERBOSE:
@@ -78,6 +81,22 @@ def get_response(html):
 	wrapper = doc.xpath('//div[@class="challenge-wrapper"]')[0]
 	xalert = wrapper.xpath('./div[contains(@class, "alert")]')[0]
 	return xalert.text_content().strip()
+
+class tmpfile(object):
+	def __enter__(self):
+		self.fd, self.fn = tempfile.mkstemp()
+		return self.fd, self.fn
+	
+	def __exit__(self, ex_type, ex_value, ex_traceback):
+		try: 
+			os.close(self.fd)
+		except: pass
+		os.unlink(self.fn)
+
+def write_bin_file(fd, data):
+	f = os.fdopen(fd, 'wb')
+	f.write(data)
+	f.close()
 
 def login():
 	username, password = get_auth()
