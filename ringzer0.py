@@ -128,7 +128,6 @@ def read_challenge_file(s, ch):
 	wrapper = get_wrapper(r.text)
 	xa = wrapper.xpath('./div[@class="download"]/a')[0]
 	link = xa.attrib['href']
-	_out(link)
 	if RZ_VERBOSE: 
 		_tsout('reading file {0}'.format(link))
 	r = s.get('{0}{1}'.format(RZ_URL, link), stream=True)
