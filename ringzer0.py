@@ -52,10 +52,13 @@ def get_auth():
 		sys.exit(1)
 	return (username, password)
 
+def get_wrapper(html):
+	doc = lxml.html.document_fromstring(html)
+	return doc.xpath('//div[@class="challenge-wrapper"]')[0]
+
 def get_sections(html):
 	msg_section = re.compile(r'^-+\s(BEGIN|END)\s([a-z\s]+)\s-+$', re.I)
-	doc = lxml.html.document_fromstring(html)
-	wrapper = doc.xpath('//div[@class="challenge-wrapper"]')[0]
+	wrapper = get_wrapper(html)
 	text = wrapper.text_content()
 	sections = {}
 	section, title, msg, checksum = 'title', [], [], []
@@ -77,8 +80,7 @@ def get_sections(html):
 	return sections
 
 def get_response(html):
-	doc = lxml.html.document_fromstring(html)
-	wrapper = doc.xpath('//div[@class="challenge-wrapper"]')[0]
+	wrapper = get_wrapper(html)
 	xalert = wrapper.xpath('./div[contains(@class, "alert")]')[0]
 	return xalert.text_content().strip()
 
@@ -107,15 +109,38 @@ def login():
 	r = s.post('{0}/login'.format(RZ_URL), data=payload)
 	return s
 
-def read_challenge(s, ch):
+def open_challenge(s, ch):
 	if RZ_VERBOSE: 
 		_tsout('reading challenge')
 	r = s.get('{0}/challenges/{1}'.format(RZ_URL, int(ch)))
+	return r
+
+def read_challenge(s, ch):
+	r = open_challenge(s, ch)
 	sections = get_sections(r.text)
 	if RZ_VERBOSE:
 		for k, v in sections.items():
 			_tsout('{0}: {1}'.format(k, v))
 	return sections
+
+def read_challenge_file(s, ch):
+	r = open_challenge(s, ch)
+	wrapper = get_wrapper(r.text)
+	xa = wrapper.xpath('./div[@class="download"]/a')[0]
+	link = xa.attrib['href']
+	_out(link)
+	if RZ_VERBOSE: 
+		_tsout('reading file {0}'.format(link))
+	r = s.get('{0}{1}'.format(RZ_URL, link), stream=True)
+	data = ''
+	if r.ok:
+		for block in r.iter_content(1024):
+			if not block:
+				break
+			data += block
+	if RZ_VERBOSE: 
+		_tsout('read file (size={0})'.format(len(data)))
+	return data
 
 def submit_challenge(s, ch, answer):
 	if RZ_VERBOSE:
