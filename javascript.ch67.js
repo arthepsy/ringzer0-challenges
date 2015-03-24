@@ -13,7 +13,5 @@ pb = "ob1xQz5ms9hRkPTx+ZHbVg==";
 
 p = CryptoJS.AES.decrypt(pb, key, {iv: iv})
 t = CryptoJS.AES.encrypt(p, key, { iv: iv })
-// console.log(t.toString())
-// console.log(pb)
 
 console.log(u, hex2str(p));
