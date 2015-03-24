@@ -10,12 +10,7 @@ function dec(key)
 {
 	var buf = ''
 	for (var i=0;i<func.length;i++) {
-		//console.log(i, i % 9);
 		buf += xor(key[i % 9], func[i])
-		if (i > 0 && i % 9 == 0) {
-			// console.log(buf);
-			// buf = '';
-		}
 	}
 	return buf;
 }
