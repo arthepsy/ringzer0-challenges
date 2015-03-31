@@ -79,6 +79,15 @@ def get_sections(html):
 		sections[k] = os.linesep.join(sections[k])
 	return sections
 
+def get_lines(html):
+	wrapper = get_wrapper(html)
+	lines = []
+	for t in wrapper.xpath('text()'):
+		v = t.strip()
+		if len(v) == 0: continue
+		lines.append(v)
+	return lines
+
 def get_response(html):
 	wrapper = get_wrapper(html)
 	xalert = wrapper.xpath('./div[contains(@class, "alert")]')[0]
@@ -100,19 +109,22 @@ def write_bin_file(fd, data):
 	f.write(data)
 	f.close()
 
+def get_url(url):
+	return RZ_URL + url
+
 def login():
 	username, password = get_auth()
 	if RZ_VERBOSE: 
 		_tsout('logging')
 	s = requests.Session()
 	payload = {'username':username, 'password':password}
-	r = s.post('{0}/login'.format(RZ_URL), data=payload)
+	r = s.post(get_url('/login'), data=payload)
 	return s
 
 def open_challenge(s, ch):
 	if RZ_VERBOSE: 
 		_tsout('reading challenge')
-	r = s.get('{0}/challenges/{1}'.format(RZ_URL, int(ch)))
+	r = s.get(get_url('/challenges/{0}'.format(int(ch))))
 	return r
 
 def read_challenge(s, ch):
@@ -123,6 +135,11 @@ def read_challenge(s, ch):
 			_tsout('{0}: {1}'.format(k, v))
 	return sections
 
+def read_challenge_lines(s, ch):
+	r = open_challenge(s, ch)
+	lines = get_lines(r.text)
+	return lines
+
 def read_challenge_file(s, ch):
 	r = open_challenge(s, ch)
 	wrapper = get_wrapper(r.text)
@@ -130,7 +147,7 @@ def read_challenge_file(s, ch):
 	link = xa.attrib['href']
 	if RZ_VERBOSE: 
 		_tsout('reading file {0}'.format(link))
-	r = s.get('{0}{1}'.format(RZ_URL, link), stream=True)
+	r = s.get(get_url('{0}'.format(link)), stream=True)
 	data = ''
 	if r.ok:
 		for block in r.iter_content(1024):
@@ -144,7 +161,7 @@ def read_challenge_file(s, ch):
 def submit_challenge(s, ch, answer):
 	if RZ_VERBOSE:
 		_tsout('submitting challenge solution')
-	r = s.get('{0}/challenges/{1}/{2}'.format(RZ_URL, int(ch), answer))
+	r = s.get(get_url('/challenges/{0}/{1}'.format(int(ch), answer)))
 	response = get_response(r.text)
 	return response
 
