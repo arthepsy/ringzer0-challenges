@@ -56,14 +56,20 @@ def get_wrapper(html):
 	doc = lxml.html.document_fromstring(html)
 	return doc.xpath('//div[@class="challenge-wrapper"]')[0]
 
-def get_sections(html):
-	msg_section = re.compile(r'^-+\s(BEGIN|END)\s([a-z\s]+)\s-+$', re.I)
+def get_sections(html, newlines=True, clean=True):
+	msg_section = re.compile(r'^\s*-+\s(BEGIN|END)\s([a-z\s]+)\s-+$', re.I)
 	wrapper = get_wrapper(html)
+	if newlines:
+		for br in wrapper.xpath('*//br'):
+			br.tail = '\n' + br.tail if br.tail else '\n'
 	text = wrapper.text_content()
 	sections = {}
 	section, title, msg, checksum = 'title', [], [], []
 	for s in text.splitlines():
-		s = s.strip()
+		s = s.lstrip('\r\n').rstrip('\r\n')
+		s = s.replace(u'\xa0', ' ')
+		if section == 'title' or clean:
+			s = s.strip()
 		if not s: continue
 		mx = re.match(msg_section, s)
 		if mx:
@@ -89,9 +95,16 @@ def get_lines(html):
 	return lines
 
 def get_response(html):
-	wrapper = get_wrapper(html)
-	xalert = wrapper.xpath('./div[contains(@class, "alert")]')[0]
-	return xalert.text_content().strip()
+	wrapper, xalert = get_wrapper(html), None
+	xnodes = wrapper.xpath('./div[contains(@class, "alert")]')
+	if not len(xnodes) > 0:
+		xnodes = wrapper.xpath('./div[contains(@class, "flag")]')
+	if len(xnodes) > 0:
+		xalert = xnodes[0]
+	if xalert is not None:
+		return xalert.text_content().strip()
+	else:
+		return '(empty)'
 
 class tmpfile(object):
 	def __enter__(self):
@@ -127,12 +140,12 @@ def open_challenge(s, ch):
 	r = s.get(get_url('/challenges/{0}'.format(int(ch))))
 	return r
 
-def read_challenge(s, ch):
+def read_challenge(s, ch, newlines=True, clean=True):
 	r = open_challenge(s, ch)
-	sections = get_sections(r.text)
+	sections = get_sections(r.text, newlines=newlines, clean=clean)
 	if RZ_VERBOSE:
 		for k, v in sections.items():
-			_tsout('{0}: {1}'.format(k, v))
+			_tsout(u'{0}: {1}'.format(k, v))
 	return sections
 
 def read_challenge_lines(s, ch):
