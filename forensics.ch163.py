@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 
 PACKETS_FILE = 'ch163.packets.txt'
 
 def ch163(fp):
-	#keys = []
 	flag = [20 for i in range(37)]
 	with open(fp, 'r') as f:
 		for line in f:
