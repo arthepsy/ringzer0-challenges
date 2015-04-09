@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-PACKETS_FILE = 'ch163.packets.txt'
+PACKETS_FILE = './data/ch163.packets.txt'
 
 def ch163(fp):
 	flag = [20 for i in range(37)]

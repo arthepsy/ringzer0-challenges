@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
-USB_KEYBOARD_PACKET_FILE = 'ch12.packets.txt'
+PACKETS_FILE = './data/ch12.packets.txt'
 
 def get_key(c):
 	# http://www.usb.org/developers/hidpage/Hut1_12v2.pdf
@@ -34,4 +34,4 @@ def ch12(fp):
 	print ''.join(keys)
 
 if __name__ == '__main__':
-	ch12(USB_KEYBOARD_PACKET_FILE)
+	ch12(PACKETS_FILE)

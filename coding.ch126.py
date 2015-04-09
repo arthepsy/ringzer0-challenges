@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 import ringzer0
 
-def ch126():
+# english.dat = ~/bin/scowl/mk-list english 80 > english.dat
+WORDS_FILE = './data/english.dat'
+
+def ch126(fp):
 	ringzer0.output('parsing dictionary')
 	wordset, wordmap = set(), {}
-	# english.dat = ~/scowl/mk-list english 80 > english.dat
-	with open('english.dat', 'r') as f:
+	with open(fp, 'r') as f:
 		for line in f:
 			word = line.strip()
 			wordset.add(word)
@@ -35,4 +37,4 @@ def ch126():
 	ringzer0.output('response', response)
 
 if __name__ == '__main__':
-	ch126()
+	ch126(WORDS_FILE)
